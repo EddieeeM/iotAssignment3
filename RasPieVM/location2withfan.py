@@ -1,28 +1,30 @@
 import serial
 import csv
-import MySQLdb
-import pandas
-
-device = "/dev/ttyACM0"
-
-arduino = serial.Serial(device, 9600)
-
-i = 0
-x = 0
+import requests
 
 def checkdata():
 	link= "https://6axn3pspr8.execute-api.us-east-1.amazonaws.com/default/control_fan_light"
-	data = request.get(link)
+	data = requests.get(link)
 	result = data.text
 	if (result.find("fan") != -1) :
 		ser.write("on".encode()) 
 	else :
 		ser.write("off".encode()) 
 		
-		
-while i < 10:
+def api_call(temp,light):
+    location = "location2"
+    link= "https://fezxb1dnk0.execute-api.us-east-1.amazonaws.com/default/writetodb?temp="+str(temp)+"&light="+str(light)+"&location="+location
+    data = requests.get(link)
+    result = data.text
+    return result
+    
+arduino = serial.Serial('/dev/ttyACM0',baudrate = 9600)
+
+print("connected to :" + arduino.portstr)
+
+while 1 :
+    checkdata()
     # Read Serialised Values
-	checkdata()
     LightVal = arduino.readline()
     TemperatureVal = arduino.readline()
     
@@ -35,18 +37,8 @@ while i < 10:
     # Removes /r /n at the end value...
     Lumens = LightVal[0:-2] 
     Celsius = TemperatureVal[0:-2]
-   
-    dbConn = MySQLdb.connect("localhost", "root", "root", "Assign3") or die("Unable to connect to Database")
     
-    # Places 20 Values into the Database
-    with dbConn:
-        cursor = dbConn.cursor()
-        cursor.execute("INSERT INTO ValueHolder (Lumens, Celsius) VALUES (%s, %s)", (Lumens, Celsius))
-        dbConn.commit()
-    
-    i += 1
-else:
-    
-    print(dbConn)
-    with dbConn:
-        cursor.close();
+    temp = float(Celsius)
+    light = float(Lumens)
+    result = api_call(temp,light)
+    print(result)
