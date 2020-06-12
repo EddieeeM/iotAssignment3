@@ -5,7 +5,7 @@ import requests
 
 def check_data() :
 	link= "https://6axn3pspr8.execute-api.us-east-1.amazonaws.com/default/control_fan_light"
-	data = request.get(link)
+	data = requests.get(link)
 	result = data.text
 	if (result.find("light") != -1) :
 		ser.write("on".encode()) 
